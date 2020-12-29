@@ -1,0 +1,40 @@
+- name: Install base packages
+  apt: name= {{ item }} state=present
+  with_items:
+    - locales
+    - build-essential
+    - acp
+    - ntp
+    - htop
+    - git
+    - supervisor
+    - python-pip
+    - python3-pip
+    - nginx
+  tags: packages
+
+# - name: Install Python 3.8
+#   stat:
+#     path: /usr/local/bin/python3.8
+#   tags: python
+#   register: python_result
+
+# - name: Update apt-cache
+#   apt: update_cache=yes
+#   tags: packages, python
+#   when: python_result.stat.exists == False
+
+# - name: Install packages requirements for Python
+#   apt:
+#     name:
+#       - wget
+#       - xz-utils
+#       - build-essential
+#       - libsqlite3-dev
+#       - libreadline-dev
+#       - libssl-dev
+#       - openssl
+#     state: present
+#     autoclean: yes
+#   tags: packages, python
+#   when: python_result.stat.exists == False

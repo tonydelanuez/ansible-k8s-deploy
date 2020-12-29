@@ -1,0 +1,10 @@
+all:
+  hosts:
+    bebop:
+  children:
+    kubeservers:
+      hosts:
+        bebop:
+      vars:
+        ansible_user: pi
+        kube_user: kube

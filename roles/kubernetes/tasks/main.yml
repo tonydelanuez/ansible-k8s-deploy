@@ -20,12 +20,13 @@
 - name: Create kubernetes user and add to group
   user:
     name: "{{ kube_user }}"
+    create_home: no
     groups:
       - docker
       - sudo
     state: present
   tags: packages, kubernetes
-  when: not kubernetes_installed
+  when: kubernetes_installed is changed
 
 - name: Start Docker
   become: yes

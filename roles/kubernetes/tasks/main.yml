@@ -1,9 +1,21 @@
+- name: Check Docker install
+  stat:
+    path: /usr/bin/docker
+  tags: packages, kubernetes
+  register: docker_installed
+
+- name: Check Kubernetes install
+  stat:
+    path: /usr/local/bin/kubectl
+  tags: packages, kubernetes
+  register: kubernetes_installed
+
 - name: Install Docker
   apt:
     name: docker.io
     state: present
   tags: packages, kubernetes
-
+  when: not docker_installed
 
 - name: Create kubernetes user and add to group
   user:
@@ -12,4 +24,51 @@
       - docker
       - sudo
     state: present
+  tags: packages, kubernetes
+  when: not kubernetes_installed
+
+- name: Start Docker
+  become: yes
+  service:
+    name: docker
+    state: started
+    use: service
   tags: kubernetes
+
+- name: Add apt key for google cloud
+  become: yes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  tags: packages, kubernetes
+
+- name: Add apt repository for google cloud
+  become: yes
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+  tags: packages, kubernetes
+
+- name: Install kubernetes packages
+  apt:
+    name:
+      - kubeadm
+      - kubelet
+      - kubectl
+    state: present
+    autoclean: yes
+  tags: packages, kubernetes
+
+# -https://germaniumhq.com/2019/02/14/2019-02-14-Disabling-Swap-for-Kubernetes-in-an-Ansible-Playbook/
+- name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+  shell: |
+    swapoff -a
+  when: kubernetes_installed is changed
+
+- name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  when: kubernetes_installed is changed
+

@@ -11,6 +11,7 @@
     - python-pip
     - python3-pip
     - nginx
+    - curl
   tags: packages
 
 # - name: Install Python 3.8

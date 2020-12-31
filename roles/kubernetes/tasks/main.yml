@@ -10,12 +10,31 @@
   tags: packages, kubernetes
   register: kubernetes_installed
 
-- name: Install Docker
-  apt:
-    name: docker.io
+- name: Add apt key for Docker
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
     state: present
   tags: packages, kubernetes
-  when: not docker_installed
+
+- name: Add apt repository for Docker
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+  tags: packages, kubernetes
+  register: docker_repo
+
+- name: Install Docker and friends
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    autoclean: yes
+  tags: packages, kubernetes
+  when: docker_installed.stat.exists == false
 
 - name: Create kubernetes user and add to group
   user:

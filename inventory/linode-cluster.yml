@@ -1,0 +1,18 @@
+all:
+  hosts:
+    controller:
+    node1:
+  vars:
+    ansible_user: root
+    kube_user: kube
+    ansible_python_interpreter: /usr/bin/python3
+  children:
+    kubeservers:
+      hosts:
+        controller:
+    kubecontrollers:
+      hosts:
+        controller:
+    kubenodes:
+      hosts:
+        node1:

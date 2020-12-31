@@ -1,0 +1,30 @@
+- name: Check kubeadm install
+  become: yes
+  stat:
+    path: /etc/kubernetes/admin.conf
+  tags: packages, kubernetes
+  register: kubeadm_installed
+
+- name: Kubeadm init
+  become: yes
+  command: /usr/bin/kubeadm init --pod-network-cidr={{ ansible_default_ipv4.address }}/16 --ignore-preflight-errors=all
+  when: not kubeadm_installed.stat.exists
+  register: kubeadm_init
+
+- name: Create .kube home dir
+  become: true
+  file:
+    path: /home/.kube
+    state: directory
+    mode: '0644'
+  when: kubeadm_init|bool
+
+- name: Copy kubeadm conf
+  become: yes
+  copy:
+    remote_src: yes
+    src: /etc/kubernetes/admin.conf
+    dest: /home/.kube/config
+    owner: "{{ kube_user }}"
+    group: "{{ kube_user }}"
+  when: kubeadm_init|bool

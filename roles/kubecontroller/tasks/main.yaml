@@ -1,23 +1,29 @@
 - name: Check kubeadm install
   become: yes
   stat:
-    path: /etc/kubernetes/admin.conf
+    path: /etc/kubernetes/manifests/etcd.yaml
   tags: packages, kubernetes
   register: kubeadm_installed
 
 - name: Kubeadm init
   become: yes
-  command: /usr/bin/kubeadm init --pod-network-cidr={{ ansible_default_ipv4.address }}/16 --ignore-preflight-errors=all
+  command: /usr/bin/kubeadm init --pod-network-cidr={{ ansible_default_ipv4.address }}/16 --cri-socket /var/run/crio/crio.sock
   when: not kubeadm_installed.stat.exists
   register: kubeadm_init
 
-- name: Create .kube home dir
-  become: true
-  file:
-    path: /home/.kube
-    state: directory
-    mode: '0644'
+- name: Deploy pod network
+  become: yes
+  command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
   when: kubeadm_init|bool
+
+- name: Create .kube home dir
+  become_user: "{{ kube_user }}"
+  file:
+    path: /home/.kube/
+    state: directory
+    mode: '0655'
+    owner: "{{ kube_user }}"
+    group: "{{ kube_user }}"
 
 - name: Copy kubeadm conf
   become: yes
@@ -27,4 +33,5 @@
     dest: /home/.kube/config
     owner: "{{ kube_user }}"
     group: "{{ kube_user }}"
-  when: kubeadm_init|bool
+    mode: '0655'
+

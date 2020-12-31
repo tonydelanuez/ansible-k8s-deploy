@@ -1,0 +1,3 @@
+- name: Join cluster
+  become: yes
+  command: kubeadm join {{ controller_ip }}:6443 --token {{ cluster_token }} --discovery-token-ca-cert-hash {{ ca_cert_hash }} --cri-socket /var/run/crio/crio.sock

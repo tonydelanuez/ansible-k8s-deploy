@@ -23,3 +23,8 @@
   hosts: kubecontrollers
   roles:
     - kubecontroller
+
+- name: Join cluster_token
+  hosts: kubenodes
+  roles:
+    - kubenode
